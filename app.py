@@ -1,7 +1,6 @@
 import streamlit as st
 import requests
 import time
-import matplotlib.pyplot as plt
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="ArvyaX AI", layout="wide")
@@ -9,11 +8,11 @@ st.set_page_config(page_title="ArvyaX AI", layout="wide")
 st.title("🌿 ArvyaX AI Companion")
 st.caption("Understand → Decide → Guide")
 
-# ---------------- API CONFIG ----------------
-API_URL = st.secrets.get("API_URL", "https://your-api.onrender.com/predict")
-API_KEY = st.secrets.get("API_KEY", "arvyax-secret-key")
+# ---------------- SAFE CONFIG ----------------
+API_URL = "https://ml1-qinj.onrender.com/predict"
+API_KEY = "arvyax-secret-key"
 
-# ---------------- SESSION ----------------
+# ---------------- SESSION INIT (FIXED) ----------------
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
@@ -22,12 +21,24 @@ for msg in st.session_state.chat_history:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
 
+# ---------------- SIDEBAR ----------------
+with st.sidebar:
+    st.subheader("⚙️ Context Inputs")
+    stress = st.slider("Stress", 1, 10, 5)
+    energy = st.slider("Energy", 1, 10, 5)
+    sleep = st.slider("Sleep (hrs)", 0, 10, 6)
+    duration = st.slider("Session Duration", 5, 60, 20)
+    time_of_day = st.selectbox(
+        "Time of Day",
+        ["morning", "afternoon", "evening", "night"]
+    )
+
 # ---------------- USER INPUT ----------------
 user_input = st.chat_input("How are you feeling?")
 
 if user_input:
 
-    # Store user message
+    # Save user message
     st.session_state.chat_history.append({
         "role": "user",
         "content": user_input
@@ -35,18 +46,6 @@ if user_input:
 
     with st.chat_message("user"):
         st.write(user_input)
-
-    # ---------------- USER CONTROLS ----------------
-    with st.sidebar:
-        st.subheader("⚙️ Context Inputs")
-        stress = st.slider("Stress", 1, 10, 5)
-        energy = st.slider("Energy", 1, 10, 5)
-        sleep = st.slider("Sleep (hrs)", 0, 10, 6)
-        duration = st.slider("Session Duration", 5, 60, 20)
-        time_of_day = st.selectbox(
-            "Time of Day",
-            ["morning", "afternoon", "evening", "night"]
-        )
 
     # ---------------- API CALL ----------------
     payload = {
@@ -58,63 +57,42 @@ if user_input:
         "time_of_day": time_of_day
     }
 
-    headers = {
-        "x-api-key": API_KEY
-    }
-
     try:
-        res = requests.post(API_URL, json=payload, headers=headers)
-        res = res.json()
+        response = requests.post(API_URL, json=payload, timeout=10)
+
+        if response.status_code != 200:
+            st.error(f"API Error: {response.status_code}")
+            st.stop()
+
+        res = response.json()
 
     except Exception as e:
-        st.error("⚠️ Failed to connect to API")
-        st.stop()
+        st.error("⚠️ API connection failed")
+        st.write(e)
 
-    # ---------------- RESPONSE DATA ----------------
+        # fallback response
+        res = {
+            "state": "unknown",
+            "intensity": 0,
+            "confidence": 0,
+            "uncertain": 1,
+            "guidance": "System couldn't connect. Try again."
+        }
+
+    # ---------------- RESPONSE ----------------
     state = res.get("state", "unknown")
-    intensity = res.get("intensity", 0)
-    confidence = res.get("confidence", 0)
-    uncertain = res.get("uncertain", 1)
-    guidance = res.get("guidance", "No guidance available")
+    guidance = res.get("guidance", "No guidance")
 
-    # ---------------- BOT RESPONSE ----------------
     with st.chat_message("assistant"):
 
-        # Typing effect
+        # typing effect
         placeholder = st.empty()
         full_text = ""
 
         for word in guidance.split():
             full_text += word + " "
             placeholder.markdown(full_text)
-            time.sleep(0.015)
-
-        # ---------------- METRICS ----------------
-        st.markdown("### 📊 Insight Panel")
-
-        col1, col2, col3 = st.columns(3)
-
-        col1.metric("State", state)
-        col2.metric("Intensity", f"{intensity}/5")
-        col3.metric("Confidence", round(confidence, 2))
-
-        # ---------------- UNCERTAINTY ----------------
-        if uncertain:
-            st.warning("⚠️ Model is uncertain — input may be ambiguous")
-        else:
-            st.success("✅ High confidence prediction")
-
-        # ---------------- VISUALIZATION ----------------
-        if "probabilities" in res:
-            st.markdown("### 📈 Emotion Distribution")
-
-            labels = list(res["probabilities"].keys())
-            values = list(res["probabilities"].values())
-
-            fig, ax = plt.subplots()
-            ax.barh(labels, values)
-            ax.set_xlabel("Confidence")
-            st.pyplot(fig)
+            time.sleep(0.01)
 
     # Save assistant response
     st.session_state.chat_history.append({

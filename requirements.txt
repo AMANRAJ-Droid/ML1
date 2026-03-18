@@ -1,12 +1,3 @@
-fastapi
-uvicorn
-pandas
-scikit-learn
-scipy
-numpy
-matplotlib
-xgboost
-
 streamlit==1.32.0
 altair==4.2.2
 requests

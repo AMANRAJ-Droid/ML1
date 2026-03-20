@@ -4,7 +4,7 @@
 ---
 
 ## 🚀 Live Demo
-🔗 Frontend: https://your-streamlit-app.streamlit.app  
+🔗 Frontend: https://https://checkmenow.streamlit.app/ 
 🔗 API Docs: https://ml1-qinj.onrender.com/docs  
 
 ---
@@ -53,20 +53,6 @@ Guidance Output ✨
 - 🌐 Fully deployed system  
 
 ---
-## 📊 Example Output
-
-```json
-{
-  "state": "stress",
-  "intensity": 4,
-  "confidence": 0.82,
-  "what_to_do": "box_breathing",
-  "when_to_do": "now"
-}
-👉 Human-friendly response:
-
-“You seem stressed right now.
-Let’s slow things down. Try a short breathing exercise.”
 
 🧠 Model Approach
 🔹 Emotional Understanding
@@ -101,7 +87,21 @@ Render (API)
 
 Streamlit Community Cloud (UI)
 
-Philosophy
+🛠️ Tech Stack
+
+Frontend: Streamlit
+
+Backend: FastAPI
+
+ML: XGBoost, Scikit-learn
+
+Deployment:
+
+Render (API)
+
+Streamlit Community Cloud (UI)
+
+🌟 Philosophy
 
 AI should not just understand humans.
 It should help them move toward a better state.
@@ -109,3 +109,4 @@ It should help them move toward a better state.
 👨‍💻 Author
 
 Aman Raj
+

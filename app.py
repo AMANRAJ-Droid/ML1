@@ -3,16 +3,14 @@ import requests
 import time
 
 # ---------------- CONFIG ----------------
-st.set_page_config(page_title="ArvyaX AI", layout="wide")
+st.set_page_config(page_title="ArvyaX AI", layout="centered")
+
+API_URL = "https://ml1-qinj.onrender.com/predict"
 
 st.title("🌿 ArvyaX AI Companion")
 st.caption("Understand → Decide → Guide")
 
-# ---------------- SAFE CONFIG ----------------
-API_URL = "https://ml1-qinj.onrender.com/predict"
-API_KEY = "arvyax-secret-key"
-
-# ---------------- SESSION INIT (FIXED) ----------------
+# ---------------- SESSION ----------------
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
@@ -21,20 +19,8 @@ for msg in st.session_state.chat_history:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
 
-# ---------------- SIDEBAR ----------------
-with st.sidebar:
-    st.subheader("⚙️ Context Inputs")
-    stress = st.slider("Stress", 1, 10, 5)
-    energy = st.slider("Energy", 1, 10, 5)
-    sleep = st.slider("Sleep (hrs)", 0, 10, 6)
-    duration = st.slider("Session Duration", 5, 60, 20)
-    time_of_day = st.selectbox(
-        "Time of Day",
-        ["morning", "afternoon", "evening", "night"]
-    )
-
 # ---------------- USER INPUT ----------------
-user_input = st.chat_input("How are you feeling?")
+user_input = st.chat_input("How are you feeling today?")
 
 if user_input:
 
@@ -47,55 +33,77 @@ if user_input:
     with st.chat_message("user"):
         st.write(user_input)
 
-    # ---------------- API CALL ----------------
     payload = {
-        "journal_text": user_input,
-        "stress": stress,
-        "energy": energy,
-        "sleep": sleep,
-        "duration": duration,
-        "time_of_day": time_of_day
+        "journal_text": user_input
     }
 
+    # ---------------- API CALL ----------------
     try:
-        response = requests.post(API_URL, json=payload, timeout=10)
+        with st.spinner("🧠 Understanding your state..."):
+            response = requests.post(API_URL, json=payload, timeout=60)
+            data = response.json()
 
-        if response.status_code != 200:
-            st.error(f"API Error: {response.status_code}")
-            st.stop()
-
-        res = response.json()
+    except requests.exceptions.ReadTimeout:
+        with st.chat_message("assistant"):
+            st.error("⏳ Server is waking up... try again in a few seconds")
+        st.stop()
 
     except Exception as e:
-        st.error("⚠️ API connection failed")
-        st.write(e)
+        with st.chat_message("assistant"):
+            st.error("⚠️ API connection failed")
+            st.write(e)
+        st.stop()
 
-        # fallback response
-        res = {
-            "state": "unknown",
-            "intensity": 0,
-            "confidence": 0,
-            "uncertain": 1,
-            "guidance": "System couldn't connect. Try again."
-        }
+    # ---------------- EXTRACT DATA ----------------
+    state = data.get("state", "unknown")
+    intensity = data.get("intensity", 0)
+    confidence = data.get("confidence", 0)
+    action = data.get("what_to_do", "rest")
+    timing = data.get("when_to_do", "later")
+    uncertain = data.get("uncertain_flag", 1)
 
-    # ---------------- RESPONSE ----------------
-    state = res.get("state", "unknown")
-    guidance = res.get("guidance", "No guidance")
+    # ---------------- SMART MESSAGE ----------------
+    message = f"""
+You seem **{state}** right now.
 
+Let’s take a small step:
+👉 Try **{action.replace('_',' ')}** **{timing}**.
+
+You don’t need to solve everything at once.
+"""
+
+    # ---------------- BOT RESPONSE ----------------
     with st.chat_message("assistant"):
 
         # typing effect
         placeholder = st.empty()
         full_text = ""
 
-        for word in guidance.split():
+        for word in message.split():
             full_text += word + " "
             placeholder.markdown(full_text)
             time.sleep(0.01)
 
-    # Save assistant response
+        # ---------------- VISUAL PANEL ----------------
+        st.markdown("### 📊 Insight Panel")
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("State", state)
+        col2.metric("Intensity", f"{intensity}/5")
+        col3.metric("Confidence", round(confidence, 2))
+
+        # ---------------- PROGRESS BAR ----------------
+        st.progress(intensity / 5)
+
+        # ---------------- UNCERTAINTY ----------------
+        if uncertain:
+            st.warning("⚠️ Model is slightly uncertain — input may be ambiguous")
+        else:
+            st.success("✅ High confidence prediction")
+
+    # Save response
     st.session_state.chat_history.append({
         "role": "assistant",
-        "content": guidance
+        "content": message
     })

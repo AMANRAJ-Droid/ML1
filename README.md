@@ -4,7 +4,7 @@
 ---
 
 ## 🚀 Live Demo
-🔗 Frontend: https://https://checkmenow.streamlit.app/ 
+🔗 Frontend: https://checkmenow.streamlit.app/
 🔗 API Docs: https://ml1-qinj.onrender.com/docs  
 
 ---
@@ -73,19 +73,6 @@ Sleep hours
 
 Time of day
 
-🛠️ Tech Stack
-
-Frontend: Streamlit
-
-Backend: FastAPI
-
-ML: XGBoost, Scikit-learn
-
-Deployment:
-
-Render (API)
-
-Streamlit Community Cloud (UI)
 
 🛠️ Tech Stack
 

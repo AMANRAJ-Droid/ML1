@@ -23,70 +23,71 @@ But real-world emotional data is:
 - reasons under uncertainty  
 - **guides users toward better actions**
 
----
-
-## 🏗️ System Architecture
-
-User Input
-↓
-Streamlit UI 💬
-↓
-FastAPI Backend ⚙️
-↓
-ML Model 🧠
-↓
-Decision Engine 🎯
-↓
-Guidance Output ✨
-
+The system processes noisy journal inputs along with contextual signals and outputs:
+- Emotional state
+- Intensity
+- Recommended action (what to do)
+- Timing (when to do)
+- Confidence and uncertainty
 
 ---
 
-## ✨ Features
+## Architecture
 
-- 💬 Chat-style interaction  
-- 🧠 Emotion + intensity prediction  
-- 🎯 Action recommendation (what to do)  
-- ⏰ Timing decision (when to do)  
-- ⚠️ Uncertainty awareness  
-- 📊 Emotion visualization  
-- 🌐 Fully deployed system  
+Frontend: Streamlit  
+Backend: FastAPI (deployed on Render)
+
+User → Streamlit UI → FastAPI API → ML Model → Decision Engine → Response
 
 ---
 
-🧠 Model Approach
-🔹 Emotional Understanding
+## Features
 
-XGBoost classifier → emotional state
+- Handles noisy and short text inputs
+- Combines text + metadata
+- Decision engine for actionable guidance
+- Uncertainty modeling
+- Real-time interactive UI
 
-Regression → intensity
+---
 
-🔹 Features Used
+## Model
 
-Text (journal input)
+- Text + metadata features
+- XGBoost classifier for state prediction
+- Regression for intensity
+- Rule-based decision layer
 
-Stress level
+---
 
-Energy level
+## Decision Logic
 
-Sleep hours
+Uses:
+- emotional_state
+- intensity
+- stress
+- energy
+- time_of_day
 
-Time of day
+Outputs:
+- what_to_do
+- when_to_do
 
+---
 
-🛠️ Tech Stack
+## Uncertainty Handling
 
-Frontend: Streamlit
+- Confidence score
+- Uncertain flag if prediction is weak or ambiguous
 
-Backend: FastAPI
+---
 
-ML: XGBoost, Scikit-learn
+## Deployment
 
-Deployment:
+- Backend: Render
+- Frontend: Streamlit Cloud
 
-Render (API)
-
-Streamlit Community Cloud (UI)
+---
 
 🌟 Philosophy
 
@@ -96,4 +97,12 @@ It should help them move toward a better state.
 👨‍💻 Author
 
 Aman Raj
+
+## How to Run
+
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+
+
 
